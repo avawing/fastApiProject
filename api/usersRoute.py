@@ -1,49 +1,55 @@
-from fastapi import APIRouter
-from typing import Union
+from fastapi import APIRouter, Depends
+from typing import List
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from api import database
 
 
 class User(BaseModel):
     first_name: str
-    last_name: Union[str, None] = None
+    last_name: str
     email: str
     has_loan: bool
     has_other_loan: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/users",
+    tags=["users"],
+    responses={404: {"description": "Not found"}},
+)
 
 
-@router.get("/users/", tags=["users"])
-async def read_users(db: Session) -> [User]:
-    return db.query(User).all()
+@router.get("/")
+async def read_users(db: Session = Depends(database.get_db)) -> List[User]:
+    users = await db.query(User)
+    return users
 
 
-@router.post("/users/", tags=["users"])
-async def create_user(db: Session, user: User) -> User:
+@router.post("/")
+async def create_user(user: User, db: Session = Depends(database.get_db)) -> User:
     db_user = User(first_name=user.first_name,
                    last_name=user.last_name,
                    email=user.email,
                    has_loan=user.has_loan,
-                   has_other_loat=user.has_other_loan)
+                   has_other_load=user.has_other_loan)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
 
-@router.get("/users/{user_id}", tags=["users"])
-async def read_user(db: Session, user_id: int) -> User:
-    user = await db.query(User).filter(User.id == user_id).first()
-    return user
+@router.get("/{user_id}")
+async def read_user(user_id: int, db: Session = Depends(database.get_db)) -> User:
+    db_user = await db.query(User).filter(User.id == user_id).first()
+    return db_user
 
 
-@router.put("/users/{user_id}", tags=["users"])
-async def update_user(db: Session, user_id: int, user: User) -> User:
+@router.put("/{user_id}")
+async def update_user(user_id: int, user: User, db: Session = Depends(database.get_db)) -> User:
     db_user = await db.query(User).filter(User.id == user_id).first()
 
     for k, v in db_user:
@@ -57,8 +63,8 @@ async def update_user(db: Session, user_id: int, user: User) -> User:
     return db_user
 
 
-@router.delete("/users/{user_id}", tags=["users"])
-async def delete_user(db: Session, user_id: int) -> bool:
+@router.delete("/{user_id}")
+async def delete_user(user_id: int, db: Session = Depends(database.get_db)) -> bool:
     user = await db.query(User).filter(User.id == user_id).first()
     db.delete(user)
     db.commit()

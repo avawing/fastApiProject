@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from typing import List
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from api import database
+from api import database, usersModel
 
 
 class User(BaseModel):
@@ -25,8 +25,7 @@ router = APIRouter(
 
 @router.get("/")
 async def read_users(db: Session = Depends(database.get_db)) -> List[User]:
-    users = await db.query(User)
-    return users
+    return db.query(usersModel.User).all()
 
 
 @router.post("/")
@@ -39,12 +38,14 @@ async def create_user(user: User, db: Session = Depends(database.get_db)) -> Use
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    print(db_user)
     return db_user
 
 
 @router.get("/{user_id}")
 async def read_user(user_id: int, db: Session = Depends(database.get_db)) -> User:
-    db_user = await db.query(User).filter(User.id == user_id).first()
+    db_user = db.query(usersModel.User).filter(User.id == user_id).first()
     return db_user
 
 

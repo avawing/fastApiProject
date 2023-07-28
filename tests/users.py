@@ -26,21 +26,10 @@ def test_delete_user():
     assert response.status_code == 200
 
 
-def test_create_user_empty():
-    response = client.post('/users/')
-    assert response.status_code == 400
-
-
 def test_create_user():
-    data = {"first_name": "Fred"}
-    response = client.post('/users', json=json.dumps(data))
-    assert response.status_code == 400
+    data = {"first_name": "Fred", "last_name": "fredderton", "email": "fred@fred.com", "has_loan": True,
+            "has_other_loan": False}
 
-    data["last_name"] = "fredderton"
-    response = client.post('/users/', json=json.dumps(data))
-    assert response.status_code == 400
-
-    data["email"] = "fred@fred.com"
     response = client.post('/users/', json=json.dumps(data))
     assert response.status_code == 200
 

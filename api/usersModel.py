@@ -10,7 +10,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
-    has_loan = Column(Boolean)
-    has_other_loan = Column(Boolean)
+    has_loan = Column(Boolean, default=False)
+    has_other_loan = Column(Boolean, default=False)
 
 

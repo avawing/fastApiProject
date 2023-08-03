@@ -36,7 +36,6 @@ async def create_user(user: User, db: Session = Depends(database.get_db)) -> Use
     db.commit()
     db.refresh(db_user)
 
-    print(db_user)
     return db_user
 
 
